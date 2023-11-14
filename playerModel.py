@@ -54,3 +54,17 @@ class Player:
 
     def update(self):
         db.update(self.serialize(), doc_ids=[self.id])
+
+    #On n'utilise pas juste update pour plus de simplicité et ne pas réécrire dans le contrôleur
+    def update_score(self, score):
+        self.score = self.score + score
+        self.update()
+
+    @classmethod
+    def get_tournament_player(cls, player_id_list):
+        player_db = db.all()
+        players = []
+        for r in player_db:
+            if r['id'] in player_id_list:
+                players.append(cls.deserialize(r))
+        return players

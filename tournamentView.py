@@ -11,6 +11,8 @@ class TournamentView:
         description = input("tapez la description du tournoi : ")
         return {'name': name, 'place': place, 'date': date, 'time_control': time_control, 'description': description}
 
+    #création d'une liste des joueurs sélectionnés, on ajoute avec append dans la liste ceux sélectionnés dans select_player dans playerView, chaque joueur sélectionné est retiré de la liste pour ne pas choisir le m^meme et on limite le choix à 8 avec len
+    #TODO pourquoi pas dans le contrôleur?
     def select_players(self, players):
         selected_players = []
         while True:
@@ -21,6 +23,7 @@ class TournamentView:
                 break
         return selected_players
 
+#Pour sélectionner un tournoi on print pour chaque tournoi son nom et son id, on return le choix fait dans l'input de l'utilisateur, on en fait un entier avec int
     def select_tournament(self, tournaments):
         for tournament in tournaments:
             print(tournament.id, tournament.name)
@@ -28,6 +31,7 @@ class TournamentView:
         choice = int(input("Entrez l'id du tournoi à charger : "))
         return choice
 
+#L'utilisateur entre le résultat, selon l'input un score différent est return
     def set_match_score(self, match):
         print(match.player_one, 'vs', match.player_two)
         print('1. Player 1 a gagné le match')
