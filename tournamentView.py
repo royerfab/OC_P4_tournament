@@ -44,3 +44,11 @@ class TournamentView:
             return (0,1)
         elif choice == 3:
             return (0.5,0.5)
+
+    def show_players(self, players):
+        for player in players:
+            print(player)
+
+    def show_round(self, rounds):
+        for round in rounds:
+            print(round.id, round.name)

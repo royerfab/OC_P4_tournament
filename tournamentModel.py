@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from tinydb import TinyDB, Query, where
 
 from playerModel import Player
@@ -79,11 +81,13 @@ class Tournament:
         db.update(self.serialize(), doc_ids=[self.id])
 
     #class Round : création de la classe Round et du constructeur, un round a un nom, l'id permet d'identifier chaque round.
-    #TODO tournament id
+    #TODO tournament id, datetime est une librairie pour les dates, now permet d'avoir l'heure actuelle, stfrtime permet de formater cette heure sous ce format, end se fait tout seul
 class Round:
     def __init__(self, name, tournament_id, matches=[]):
         self.id = -1
         self.name = name
+        self.start_time = datetime.now().strftime("%d-%m-%y %H:%M:%S")
+        self.end_time = None
         self.tournament_id = tournament_id
         self.matches = matches
 
@@ -137,7 +141,11 @@ class Round:
             rounds.append(cls.deserialize(r))
         return rounds
 
-    #class Match : création de la classe Match et du constructeur, 4 paramètres, l'id permet d'identifier chaque match.
+    def end_round(self):
+        self.end_time = datetime.now().strftime("%d-%m-%y %H:%M:%S")
+
+
+#class Match : création de la classe Match et du constructeur, 4 paramètres, l'id permet d'identifier chaque match.
     # TODO round_id
 class Match:
 
