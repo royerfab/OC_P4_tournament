@@ -1,7 +1,7 @@
-from menuView import MenuView
-from playerModel import Player
-from tournamentModel import Round, Match
-from tournamentView import TournamentView
+from View.menuView import MenuView
+from Model.roundModel import Round
+from Model.matchModel import Match
+from View.tournamentView import TournamentView
 
 
 class TournamentController:
@@ -26,59 +26,56 @@ class TournamentController:
                 self.show_tournament_players_by_score()
             elif choice_t_menu == 6:
                 break
-            else:
-                print("Le choix n'est pas valide!!!")
 
-#Création de la variable round contenant le nom et l'id du tournoi de la classe Round, sélection des paires de joueurs avec range avec un pas de 2 pour ne pas prendre les mêmes et création du score, avec ces données et 'id du round on crée une instance match avec le create() du modèle
-    # TODO create_round : pourquoi paramètre tournament, pourquoi tournament.players
     def create_round(self):
-        self.tournament.current_round+=1
-        round = Round(self.tournament.current_round, self.tournament.id)
-        round.create()
-        if self.tournament.current_round==1:
-            self.first_pairing(round)
+        if self.tournament.current_round >= 4:
+            self.tournamentView.tournament_end()
         else:
-            self.other_pairing(round)
+            self.tournament.current_round += 1
+            round = Round(self.tournament.current_round, self.tournament.id)
+            round.create()
+            if self.tournament.current_round == 1:
+                self.first_pairing(round)
+            else:
+                self.other_pairing(round)
+            self.tournament.update()
 
     def first_pairing(self, round):
         for i in range(0, 8, 2):
-            # print(players[i], 'vs', players[i+1])
             player_one = self.tournament.players[i].id
             player_two = self.tournament.players[i + 1].id
             result = (0, 0)
             match = Match(player_one, player_two, result, round.id)
             match.create()
 
-
-    #player 1 et 2 id pour pas que la deuxième boucle ne reprenne pas le même que la première dans la même liste, On crée une liste des anciens matches y compris de ce round, à chaque fois qu'un match est créé dans la boucle 1 il est rajouté à la liste pour le prendre en compte dans la boucle 2 et ne pas le refaire
     def other_pairing(self, round):
-        sorted_list_tournament_players = sorted(self.tournament.players, key=lambda player: float(player.score), reverse=True)
+        sorted_list_tournament_players = sorted(self.tournament.players, key=lambda player: float(player.score),
+                                                reverse=True)
         current_round_matches = []
         for player_1 in sorted_list_tournament_players:
 
             for player_2 in sorted_list_tournament_players:
-                if player_1.id==player_2.id:
+                if player_1.id == player_2.id:
                     pass
                 else:
                     result = (0, 0)
                     current_match = Match(player_1.id, player_2.id, result, round.id)
                     match_exist = self.check_existing_match(current_round_matches, current_match)
                     if match_exist:
-                        print(player_1.id, player_2.id, 'Ont déjà joué')
+                        self.tournamentView.match_exist(player_1.id, player_2.id)
                     else:
-                        current_match_exist = self.check_existing_play_in_current_round(current_round_matches, current_match)
+                        current_match_exist = self.check_existing_play_in_current_round(current_round_matches,
+                                                                                        current_match)
                         if current_match_exist:
-                            print("L'un des deux joueurs a déjà joué")
+                            self.tournamentView.one_player()
                         else:
-                            print(player_1.id, player_2.id, 'Nouveau match')
+                            self.tournamentView.new_match(player_1.id, player_2.id)
                             current_match.create()
                             current_round_matches.append([[player_1.id, 0], [player_2.id, 0]])
 
-    #la deuxième boucle vérifie que le couple existant de joueurs pour le match ne correspond pas à un match précédent, avec extend on concatène
-    #On met deux listes côte à côté parce que le premier 0 correspond à l'emplacement dans la liste des matchs dans le match en question du premier joueur et le deuxième 0 correspond au premier élément qu'on veut y récupérer donc son id, l'autre double liste on écrit 1 pour avoir le deuxième joueur et 0 pour son id aussi
     def check_existing_match(self, current_round_matches, current_match):
         tournament_round = Round.get_round_by_tournament(self.tournament.id)
-        old_matches = current_round_matches
+        old_matches = current_round_matches.copy()
         for old_round in tournament_round:
             old_matches.extend(old_round.matches)
         for old_match in old_matches:
@@ -104,8 +101,6 @@ class TournamentController:
                 return True
         return False
 
-    # TODO pourquoi update_score avec p1 et p2 ne sont pas redondants avec add_matches et avec result dans create_round au dessus?
-    # TODO revoir le parcours intégral du score : set_match_score dans TournamentView, appelé dans update_match_result ici contenant add_matches du tournament model, appelé dans create_round au-dessus
     def update_match_result(self, round):
         matches = Match.get_match_by_round(round.id)
         for match in matches:
@@ -120,30 +115,22 @@ class TournamentController:
                     player_1_idx = idx
                 if match.player_two == player.id:
                     player_2_idx = idx
-            self.tournament.players[player_1_idx].score+=result[0]
-            self.tournament.players[player_2_idx].score+=result[1]
+            self.tournament.players[player_1_idx].score += result[0]
+            self.tournament.players[player_2_idx].score += result[1]
         round.end_round()
         round.update()
         self.tournament.update()
 
-
-# à chaque fois qu'on veut changer le score d'un joueur dans le tournoi, on modifie la iste des joueurs du tournoi en la remplaçant par la liste des mêmes joueurs mais avec un score différent
-# TODO pourquoi Player.get_tournament_player, nouveau score remplace l'ancien, ancienne liste et nouvelle liste, comment connaître paramètre ici round?
-# TODO où je mets le score du match dans le score du joueur pour le tournoi?
-#def update_player_score(self, round):
-
-
-    # TODO remplacer celle d'au-dessus par ça plus update?
-
-
     def show_tournament_players_list(self):
-        self.tournamentView.show_players(self.tournament.players)
+        sorted_list = sorted(self.tournament.players, key=lambda p: (p.last_name, p.first_name))
+        self.tournamentView.show_players(sorted_list)
 
     def show_tournament_players_by_score(self):
-        sorted_list_tournament_players = sorted(self.tournament.players, key=lambda player: float(player.score), reverse=True)
+        sorted_list_tournament_players = sorted(self.tournament.players, key=lambda player: float(player.score),
+                                                reverse=True)
         self.tournamentView.show_players(sorted_list_tournament_players)
-
 
     def show_tournament_round(self):
         rounds = Round.get_round_by_tournament(self.tournament.id)
-        self.tournamentView.show_round(rounds)
+        matches = Match.get_match_by_round(self.tournament.id)
+        self.tournamentView.show_round(rounds, matches)
