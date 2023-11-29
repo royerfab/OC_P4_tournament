@@ -1,0 +1,6 @@
+[flake8]
+# W605 : invalid escape sequence '\d'
+# W504 : line break after binary operator
+ignore = W605, W504
+max-line-length = 119
+exclude = venv/

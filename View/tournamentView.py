@@ -52,9 +52,9 @@ class TournamentView:
     def show_round(self, rounds, matches):
         for round in rounds:
             print("Round id : ", round.id, "Nom du round : ", round.name)
-            for match in matches:
-                print("Match id : ", match.id, "Joueur 1 : ", match.player_one, "Joueur 2 : ", match.player_two,
-                      "Résultat : ", match.result)
+            for match in round.matches:
+                print('Joueur 1 :', match[0][0], 'Joueur 2 :', match[1][0], 'Résultat : (', match[0][1], '-',
+                      match[1][1], ')')
 
     def match_exist(self, player_one, player_two):
         print(player_one, player_two, 'Ont déjà joué')
