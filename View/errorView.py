@@ -22,7 +22,7 @@ class InputCheckView:
     def check_date(self, message):
         while True:
             user_input = input(message)
-            if re.match("^\d{4}/\d{2}/\d{2}$", user_input):
+            if re.match(r"^\d{4}/\d{2}/\d{2}$", user_input):
                 return user_input
             self.error_handler.display_error('Mauvais format')
 
